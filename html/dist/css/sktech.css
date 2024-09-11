@@ -1,0 +1,55 @@
+.modal-fullscreen
+{
+	/* width:100%!important; */
+	height:90%!important;
+}
+.fa-sign-out:before {
+    content: "\f08b";
+}
+.sk-btn-charging
+{    
+	 box-shadow: 0px 0px 5px 3px rgba(0, 0, 0, 0.2);
+	z-index: 9999;
+	width: 38px;
+    margin-right: 20px;
+    margin-bottom: 80px;
+    font-size: 24px;
+    border-radius: 50% !important;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+}
+.sk-rounded
+{
+	border-radius: 20px; !important;
+}
+.sk-hide
+{
+	display:none!important;
+}
+.sk-pointer
+{
+	cursor:pointer!important;
+}
+.sk-inline
+{
+	display:inline-block!important; 
+}
+.sk-text-center
+{
+	float:none!important;
+	text-align:center!important;
+}
+.sk-text-left
+{
+	float:none!important;
+	text-align:left!important;
+}
+.sk-left
+{
+	float:left!important;
+}
+.sk-right
+{
+	float:right!important;
+}

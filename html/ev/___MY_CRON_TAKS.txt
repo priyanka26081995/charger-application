@@ -1,0 +1,2 @@
+*/2 * * * *  /usr/bin/php /var/www/html/ev/cron_job_stopped_booking.php
+*/2 * * * *  /usr/bin/php /var/www/html/ev/cron_job_booking.php
