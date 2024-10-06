@@ -37,32 +37,43 @@ left outer join address as a on a.address_pk = c.address_pk
 where c.IS_ACTIVE = 1 and c.registration_status = 'Accepted' and c.location_latitude = $latitude and c.location_longitude = $longitude";
  
 $data_list =   $db->fetch_array($sql) ; 
-if( count($data_list) > 0  )
-{    
-    foreach($data_list as  $data_sk)
-    {
-        $charge_box_pk = $data_sk['charge_box_pk'];
-        $charge_box_id = $data_sk['charge_box_id'];
-        $sql = "Select  c.connector_pk  , c.connector_name    ,
-        c.connector_id    , cp.min_charging_rate  , 
-            cp.charging_rate_unit  ,
-            IFNULL((Select status from connector_status where  connector_pk = c.connector_pk order by  status_timestamp  desc limit 1 ), 'Not Available') as connector_status               
-            from connector as c  
-                join connector_charging_profile as ccp on c.connector_pk  = ccp.connector_pk    
-                join charging_profile as cp on ccp.charging_profile_pk  = cp.charging_profile_pk    
-                where  c.IS_ACTIVE = 1 and  c.charge_box_id = '".$charge_box_id."' ";
-             $connector_list =   $db->fetch_array($sql) ; 
-             
-            if(count($connector_list) > 0)
-            {
-                 $array = $data_sk;
-                 $array['location_latitude'] = $array['location_latitude'];
-                 $array['location_longitude'] = $array['location_longitude'];
-                 $array['connector'] = $connector_list;
-                  // var_dump($array);
-                 $data_array[] = $array;
-            }
-    }
-    
+if (count($data_list) === 0) {
+    http_response_code(404); // Not Found
+    echo json_encode([
+        'status' => 'false',
+        'code' => 404,
+        'message' => 'No charge boxes found for the given location.'
+    ]);
+    exit;
 }
-echo json_encode($data_array);
+
+  
+foreach($data_list as  $data_sk)
+{
+    $charge_box_pk = $data_sk['charge_box_pk'];
+    $charge_box_id = $data_sk['charge_box_id'];
+    $sql = "Select  c.connector_pk  , c.connector_name    ,
+    c.connector_id    , cp.min_charging_rate  , 
+        cp.charging_rate_unit  ,
+        IFNULL((Select status from connector_status where  connector_pk = c.connector_pk order by  status_timestamp  desc limit 1 ), 'Not Available') as connector_status               
+        from connector as c  
+            join connector_charging_profile as ccp on c.connector_pk  = ccp.connector_pk    
+            join charging_profile as cp on ccp.charging_profile_pk  = cp.charging_profile_pk    
+            where  c.IS_ACTIVE = 1 and  c.charge_box_id = '".$charge_box_id."' ";
+         $connector_list =   $db->fetch_array($sql) ; 
+         
+    if(count($connector_list) > 0)
+    {
+         $array = $data_sk;
+         $array['location_latitude'] = $array['location_latitude'];
+         $array['location_longitude'] = $array['location_longitude'];
+         $array['connector'] = $connector_list;
+         $data_array[] = $array;
+    }
+}
+echo json_encode(
+    'status' => 'success',
+    'code' => 200,
+    'message' => 'Charging connectors retrieved successfully.',
+    'data' => $data_array
+);

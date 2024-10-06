@@ -40,7 +40,7 @@ if(is_array($result) && !empty($result))
         );
         $device_id =1;
         require_once("../ev/set_access_token.php");
-        echo json_encode(['status' => 'true', 'message' => 'Login successful', 'data' => $responseData]);
+        echo json_encode(['status' => 'true','code' => 200, 'message' => 'Login successful', 'data' => $responseData]);
     } else {
         echo json_encode(['status' => 'false', 'message' => 'Invalid mobile number or password.']);
     }

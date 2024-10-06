@@ -84,6 +84,7 @@ else{
     $user['access_token'] = $getAccessToken['access_token'];
     echo json_encode([
         'status' => 'success',
+        'code' => 200,
         'message' => 'User registered successfully.',
         'data' => $user
     ]);
