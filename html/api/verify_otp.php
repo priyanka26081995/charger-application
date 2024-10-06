@@ -62,14 +62,31 @@ $user = [
     'referral_code' => $tempUser['referral_code']
 ];
 
-if ($db->insert('user', $user) === false) {
+$insertData = $db->insert('user', $user);
+if ($insertData === false) {
     http_response_code(500); // Internal Server Error
     echo json_encode([
         'status' => 'error',
         'code' => 500,
-        'message' => 'User registration failed.',
+        'message' => 'There was an error during user registration. Please try again later.',
     ]);
     exit;
+}
+else{
+
+    http_response_code(200); // OK
+    $user_id = $insertData;
+    $user['user_id'] = $user_id;
+    $device_id =1;
+    require_once("../ev/set_access_token.php");
+    $sql1 = "SELECT access_token FROM access_token WHERE user_pk = '$insertData'";
+    $getAccessToken = $db->query_first($sql1);
+    $user['access_token'] = $getAccessToken['access_token'];
+    echo json_encode([
+        'status' => 'success',
+        'message' => 'User registered successfully.',
+        'data' => $user
+    ]);
 }
 
 // Remove the temporary user record
@@ -84,9 +101,5 @@ if ($db->query($sql) === false) {
     exit;
 }
 
-http_response_code(200); // OK
-echo json_encode([
-    'status' => 'success',
-    'message' => 'User registered successfully.'
-]);
+
 ?>

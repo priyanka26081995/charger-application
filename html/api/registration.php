@@ -17,10 +17,9 @@ foreach ($requiredFields as $field) {
     if (!isset($data[$field])) {
         http_response_code(400); // Bad Request
         echo json_encode([
-            'status' => 'error',
+            'status' => 'false',
             'code' => 400,
-            'message' => 'Missing required fields.',
-            'details' => "The field '$field' is required."
+            'message' => "The field '$field' is required."
         ]);
         exit;
     }
@@ -33,14 +32,35 @@ $mobile = trim($data['mobile']);
 $password = trim($data['password']);
 $referralCode = trim($data['referral_code']);
 
+
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    http_response_code(400);
+    echo json_encode([
+        'status' => 'false',
+        'code' => 400,
+        'message' => 'Please enter a valid email address.'
+    ]);
+    exit;
+}
+
+// Mobile number validation (assuming a standard 10-digit Indian number format)
+if (!preg_match('/^[789]\d{9}$/', $mobile)) {
+    http_response_code(400);
+    echo json_encode([
+        'status' => 'false',
+        'code' => 400,
+        'message' => 'Invalid mobile number format. It should be a 10-digit number.'
+    ]);
+    exit;
+}
+
 // Basic input validation
 if (empty($firstName) || empty($lastName) || empty($email) || empty($mobile) || empty($password) || empty($referralCode)) {
     http_response_code(400); // Bad Request
     echo json_encode([
-        'status' => 'error',
+        'status' => 'false',
         'code' => 400,
-        'message' => 'Invalid input data.',
-        'details' => 'All fields must be filled in.'
+        'message' => 'All fields must be filled in.',
     ]);
     exit;
 }
@@ -52,10 +72,9 @@ $result = $db->query_first($sql);
 if ($result === false) {
     http_response_code(500); // Internal Server Error
     echo json_encode([
-        'status' => 'error',
+        'status' => 'false',
         'code' => 500,
-        'message' => 'Database query failed.',
-        'details' => $conn->error
+        'message' => 'An unexpected error occurred while processing your request. Please try again later.',
     ]);
     exit;
 }
@@ -63,17 +82,59 @@ if ($result === false) {
 if (is_array($result) && !empty($result)) { 
     http_response_code(409); // Conflict
     echo json_encode([
-        'status' => 'error',
+        'status' => 'false',
         'code' => 409,
-        'message' => 'User Already Exist',
-        'details' => 'An account with this email or mobile number already exists.'
+        'message' => 'User already exists with the provided email or mobile number.',
     ]);
     exit;
 }
 
 // Generate OTP
-$otp = rand(100000, 999999);
+//$otp = rand(100000, 999999);
+$otp = '123456';
 $expiresAt = date('Y-m-d H:i:s', strtotime('+10 minutes')); // OTP valid for 10 minutes
+
+// Your Textlocal API Key
+// $apiKey = urlencode('NmM3NTMwNTE3YTRhNDQ2YzU0NTY0OTZjNjc3OTQ5NTQ=');
+
+// // Sender ID
+// $sender = urlencode('SERVEV'); // You can change this to your preferred sender ID
+
+// // Recipient's phone number
+// $numbers = '91'.$mobile; // Replace with the recipient's phone number
+
+// // Message content
+// $message = rawurlencode('Your OTP for verification is: '.$otp.'. Please enter this code to complete your process. This code is valid for 10 minutes.');
+
+// // Prepare the data for the API request
+// $data = array(
+//     'apiKey' => $apiKey,
+//     'numbers' => $numbers,
+//     'sender' => $sender,
+//     'message' => $message
+// );
+
+// print_r($data);
+// // API URL
+// $url = 'https://api.textlocal.in/send/';
+
+// // Initialize cURL
+// $ch = curl_init($url);
+
+// // Set cURL options
+// curl_setopt($ch, CURLOPT_POST, true);
+// curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+// curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+// // Execute the request and fetch the response
+// $response = curl_exec($ch);
+
+// // Close cURL session
+// curl_close($ch);
+
+// // Print the response
+// echo $response;
+
 
 // Insert into temporary table
 $tempUser = [
@@ -90,9 +151,9 @@ $tempUser = [
 if ($db->insert('temp_user', $tempUser) === false) {
     http_response_code(500); // Internal Server Error
     echo json_encode([
-        'status' => 'error',
+        'status' => 'false',
         'code' => 500,
-        'message' => 'user registration failed.',
+        'message' => 'An error occurred while attempting to register your account. Please try again later.',
     ]);
     exit;
 }
@@ -103,7 +164,9 @@ if ($db->insert('temp_user', $tempUser) === false) {
 http_response_code(200); // OK
 echo json_encode([
     'status' => 'success',
-    'message' => 'OTP sent on your registered mobile number'
+    'code' => 200,
+    'message' => 'An OTP has been sent to your registered mobile number. Please check your messages.',
+    'otp_expiration' => $expiresAt
 ]);
 
 // OTP Verification Endpoint (Create a separate PHP file for this)
